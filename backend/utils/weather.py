@@ -1,9 +1,7 @@
 """
 weather.py
 ----------
-Small wrapper around the OpenWeatherMap "forecast" endpoint.
-Raises WeatherError on any failure so app.py can turn it into a clean
-JSON error response.
+Wrapper around the OpenWeatherMap Forecast API.
 """
 
 import os
@@ -17,50 +15,50 @@ class WeatherError(Exception):
 
 
 def get_weather(city: str) -> dict:
-    api_key = os.environ.get("OPENWEATHER_API_KEY")
+    api_key = os.getenv("OPENWEATHER_API_KEY")
+
     if not api_key:
-        raise WeatherError(
-            "Weather service is not configured. Set OPENWEATHER_API_KEY in backend/.env"
-        )
+        raise WeatherError("OPENWEATHER_API_KEY is not configured.")
 
     try:
         response = requests.get(
             OPENWEATHER_URL,
             params={
-                "q": f"{city},IN",
+                "q": city,          # Use only the city name
                 "appid": api_key,
                 "units": "metric",
             },
-            timeout=6,
+            timeout=10,
         )
-    except requests.exceptions.RequestException as exc:
-        raise WeatherError(f"Could not reach weather service: {exc}") from exc
 
-    if response.status_code == 404:
-        raise WeatherError(f"City '{city}' was not found")
-    if response.status_code == 401:
-        raise WeatherError("Weather service rejected the API key")
-    if not response.ok:
-        raise WeatherError(f"Weather service returned status {response.status_code}")
+        response.raise_for_status()
+
+    except requests.exceptions.HTTPError:
+        if response.status_code == 401:
+            raise WeatherError("Invalid OpenWeather API key.")
+        elif response.status_code == 404:
+            raise WeatherError(f"City '{city}' not found.")
+        else:
+            raise WeatherError(f"Weather API returned {response.status_code}.")
+
+    except requests.exceptions.RequestException as e:
+        raise WeatherError(f"Unable to connect to OpenWeather: {e}")
 
     data = response.json()
-    try:
-        # Extract city info from the response
-        city_info = data.get("city", {})
-        city_name = city_info.get("name", city)
-        
-        # Get the first forecast entry (next 3-hour period)
-        first_forecast = data["list"][0]
-        
-        return {
-            "city": city_name,
-            "temperature": round(first_forecast["main"]["temp"], 1),
-            "humidity": first_forecast["main"]["humidity"],
-            "condition": first_forecast["weather"][0]["main"],
-            "description": first_forecast["weather"][0]["description"],
-            "wind_speed": first_forecast["wind"]["speed"],
-            "pressure": first_forecast["main"]["pressure"],
-            "forecast_time": first_forecast["dt_txt"],
-        }
-    except (KeyError, IndexError) as exc:
-        raise WeatherError("Unexpected response shape from weather service") from exc
+
+    if str(data.get("cod")) != "200":
+        raise WeatherError(data.get("message", "Unable to fetch weather."))
+
+    forecast = data["list"][0]
+
+    return {
+        "city": data["city"]["name"],
+        "temperature": round(forecast["main"]["temp"], 1),
+        "humidity": forecast["main"]["humidity"],
+        "pressure": forecast["main"]["pressure"],
+        "condition": forecast["weather"][0]["main"],
+        "description": forecast["weather"][0]["description"],
+        "icon": forecast["weather"][0]["icon"],
+        "wind_speed": forecast["wind"]["speed"],
+        "forecast_time": forecast["dt_txt"],
+    }

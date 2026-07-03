@@ -1,0 +1,52 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+  body {
+    @apply font-body bg-pitch-light text-stadium-900 transition-colors duration-300;
+  }
+  html.dark body {
+    @apply bg-stadium-900 text-pitch-light;
+  }
+  ::selection {
+    @apply bg-ball/30;
+  }
+  :focus-visible {
+    outline: 2px solid theme("colors.flood.DEFAULT");
+    outline-offset: 2px;
+  }
+}
+
+@layer components {
+  .glass-card {
+    @apply bg-white/70 dark:bg-stadium-800/70 backdrop-blur-xl border border-black/5 dark:border-white/10 rounded-2xl shadow-xl;
+  }
+  .form-input,
+  .form-select {
+    @apply w-full rounded-lg border border-black/10 bg-transparent px-3 py-2.5 text-sm outline-none transition focus:border-ball dark:border-white/10 dark:bg-stadium-700/40;
+  }
+  .stitch-divider {
+    background-image: repeating-linear-gradient(
+      90deg,
+      theme("colors.ball.DEFAULT") 0px,
+      theme("colors.ball.DEFAULT") 6px,
+      transparent 6px,
+      transparent 12px
+    );
+    height: 2px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}

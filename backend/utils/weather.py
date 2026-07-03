@@ -1,7 +1,7 @@
 """
 weather.py
 ----------
-Small wrapper around the OpenWeatherMap "current weather" endpoint.
+Small wrapper around the OpenWeatherMap "forecast" endpoint.
 Raises WeatherError on any failure so app.py can turn it into a clean
 JSON error response.
 """
@@ -9,7 +9,7 @@ JSON error response.
 import os
 import requests
 
-OPENWEATHER_URL = "https://api.openweathermap.org/data/2.5/weather"
+OPENWEATHER_URL = "https://api.openweathermap.org/data/2.5/forecast"
 
 
 class WeatherError(Exception):
@@ -45,14 +45,22 @@ def get_weather(city: str) -> dict:
 
     data = response.json()
     try:
+        # Extract city info from the response
+        city_info = data.get("city", {})
+        city_name = city_info.get("name", city)
+        
+        # Get the first forecast entry (next 3-hour period)
+        first_forecast = data["list"][0]
+        
         return {
-            "city": data["name"],
-            "temperature": round(data["main"]["temp"], 1),
-            "humidity": data["main"]["humidity"],
-            "condition": data["weather"][0]["main"],
-            "description": data["weather"][0]["description"],
-            "wind_speed": data["wind"]["speed"],
-            "pressure": data["main"]["pressure"],
+            "city": city_name,
+            "temperature": round(first_forecast["main"]["temp"], 1),
+            "humidity": first_forecast["main"]["humidity"],
+            "condition": first_forecast["weather"][0]["main"],
+            "description": first_forecast["weather"][0]["description"],
+            "wind_speed": first_forecast["wind"]["speed"],
+            "pressure": first_forecast["main"]["pressure"],
+            "forecast_time": first_forecast["dt_txt"],
         }
     except (KeyError, IndexError) as exc:
         raise WeatherError("Unexpected response shape from weather service") from exc

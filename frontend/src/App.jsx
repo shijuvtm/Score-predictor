@@ -1,9 +1,16 @@
 import { Suspense, lazy, useEffect, useState } from "react";
-import { Routes, Route } from "react-router-dom";
+import { Route, Routes, useLocation } from "react-router-dom";
 import Navbar from "./components/Navbar.jsx";
+import Footer from "./components/Footer.jsx";
 import LoadingSpinner from "./components/LoadingSpinner.jsx";
+import { AuthProvider } from "./auth/AuthContext.jsx";
+import {
+  LivePage, LoginPage, MatchDetailPage, MatchesPage, NewsDetailPage, NewsPage,
+  PlayerDetailPage, PlayersPage, ProfilePage, SignupPage, TeamDetailPage, TeamsPage,
+} from "./pages/CricketPages.jsx";
 
-const Dashboard = lazy(() => import("./pages/Dashboard.jsx"));
+const Home = lazy(() => import("./pages/Home.jsx"));
+const Predictor = lazy(() => import("./pages/Dashboard.jsx"));
 const About = lazy(() => import("./pages/About.jsx"));
 
 const THEME_KEY = "ipl-score-predictor:theme";
@@ -17,25 +24,48 @@ function getInitialTheme() {
 
 export default function App() {
   const [theme, setTheme] = useState(getInitialTheme);
+  const location = useLocation();
 
   useEffect(() => {
     document.documentElement.classList.toggle("dark", theme === "dark");
     localStorage.setItem(THEME_KEY, theme);
   }, [theme]);
 
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "auto" });
+  }, [location.pathname]);
+
   const toggleTheme = () => setTheme((t) => (t === "dark" ? "light" : "dark"));
 
   return (
-    <div className="min-h-screen bg-pitch-light dark:bg-stadium-900">
-      <Navbar theme={theme} onToggleTheme={toggleTheme} />
-      <Suspense fallback={<LoadingSpinner label="Loading page" />}>
-        <Routes>
-          <Route path="/" element={<Dashboard />} />
-          <Route path="/about" element={<About />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </Suspense>
-    </div>
+    <AuthProvider>
+      <div className="flex min-h-screen flex-col bg-pitch-light text-stadium-900 dark:bg-stadium-900 dark:text-pitch-light">
+        <Navbar theme={theme} onToggleTheme={toggleTheme} />
+        <div className="flex-1">
+          <Suspense fallback={<LoadingSpinner label="Loading page" />}>
+            <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/live" element={<LivePage />} />
+            <Route path="/matches" element={<MatchesPage />} />
+            <Route path="/matches/:id" element={<MatchDetailPage />} />
+            <Route path="/teams" element={<TeamsPage />} />
+            <Route path="/teams/:id" element={<TeamDetailPage />} />
+            <Route path="/players" element={<PlayersPage />} />
+            <Route path="/players/:id" element={<PlayerDetailPage />} />
+            <Route path="/news" element={<NewsPage />} />
+            <Route path="/news/:id" element={<NewsDetailPage />} />
+            <Route path="/predictor" element={<Predictor />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/signup" element={<SignupPage />} />
+            <Route path="/profile" element={<ProfilePage />} />
+            <Route path="/about" element={<About />} />
+            <Route path="*" element={<NotFound />} />
+            </Routes>
+          </Suspense>
+        </div>
+        <Footer />
+      </div>
+    </AuthProvider>
   );
 }
 

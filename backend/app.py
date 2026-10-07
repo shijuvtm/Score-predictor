@@ -1,5 +1,6 @@
 import os
 import logging
+from datetime import timedelta
 
 from flask import Flask, jsonify, request
 from flask_cors import CORS
@@ -7,6 +8,7 @@ from dotenv import load_dotenv
 
 from utils.predictor import predict, load_model, TEAMS
 from utils.weather import get_weather, WeatherError
+from utils.auth import register_auth_routes
 
 load_dotenv()
 
@@ -14,13 +16,29 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("ipl-score-predictor")
 
 app = Flask(__name__)
+app.secret_key = os.environ.get("SECRET_KEY")
+app.config.update(
+    SESSION_COOKIE_HTTPONLY=True,
+    SESSION_COOKIE_SECURE=os.environ.get("SESSION_COOKIE_SECURE", "false").lower() == "true",
+    SESSION_COOKIE_SAMESITE=os.environ.get("SESSION_COOKIE_SAMESITE", "Lax"),
+    PERMANENT_SESSION_LIFETIME=timedelta(days=7),
+)
 
-cors_origins = os.environ.get("CORS_ORIGINS", "*")
-CORS(app, resources={r"/*": {"origins": cors_origins.split(",")}})
+cors_origins = os.environ.get(
+    "CORS_ORIGINS",
+    "http://localhost:5173,http://127.0.0.1:5173",
+)
+CORS(
+    app,
+    resources={r"/*": {"origins": [origin.strip() for origin in cors_origins.split(",")]}},
+    supports_credentials=True,
+    allow_headers=["Content-Type", "X-CSRF-Token"],
+)
 
 # Load the model exactly once, at process startup, not per-request.
 load_model()
 logger.info("ML model loaded and ready.")
+register_auth_routes(app)
 
 
 @app.route("/", methods=["GET"])

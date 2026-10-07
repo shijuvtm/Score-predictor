@@ -39,6 +39,72 @@
     );
     height: 2px;
   }
+
+  .site-card {
+    @apply rounded-2xl border border-black/5 bg-white shadow-sm dark:border-white/10 dark:bg-stadium-800;
+  }
+
+  .site-input {
+    @apply w-full rounded-xl border border-black/10 bg-white px-3.5 py-3 text-sm text-stadium-900 outline-none transition placeholder:text-stadium-400 focus:border-turf focus:ring-2 focus:ring-turf/15 dark:border-white/10 dark:bg-stadium-700 dark:text-pitch-light dark:placeholder:text-pitch-light/35;
+  }
+
+  .team-mark {
+    background: color-mix(in srgb, var(--team-color) 17%, white);
+    color: var(--team-color);
+    @apply inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-black/5 text-xs font-extrabold tracking-tight dark:border-white/10;
+  }
+
+  .team-mark-lg {
+    @apply h-16 w-16 text-base;
+  }
+
+  .status-label {
+    @apply inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-stadium-500 dark:text-pitch-light/55;
+  }
+
+  .status-live {
+    @apply text-ball;
+  }
+
+  .status-live i {
+    @apply h-2 w-2 animate-pulse rounded-full bg-ball;
+  }
+
+  .score-table thead {
+    @apply border-y border-black/5 bg-black/[.025] text-xs uppercase tracking-wide text-stadium-500 dark:border-white/10 dark:bg-white/[.03] dark:text-pitch-light/55;
+  }
+
+  .score-table th,
+  .score-table td {
+    @apply px-4 py-3;
+  }
+
+  .score-table tbody tr {
+    @apply border-b border-black/5 last:border-0 dark:border-white/10;
+  }
+}
+
+.hero-wrap {
+  background: linear-gradient(115deg, #071611 0%, #133526 55%, #1f4833 100%);
+}
+
+.hero-feature-card {
+  max-width: 360px;
+}
+
+.predictor-banner {
+  background:
+    radial-gradient(circle at 90% 20%, rgb(244 201 93 / 16%), transparent 25rem),
+    linear-gradient(120deg, #10241c, #1d4934);
+}
+
+@media (max-width: 380px) {
+  .team-mark {
+    @apply h-9 w-9 text-[10px];
+  }
+  .team-mark-lg {
+    @apply h-14 w-14 text-sm;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

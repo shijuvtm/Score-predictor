@@ -1,11 +1,10 @@
-import { useCallback, useEffect, useState } from "react";
-import { motion } from "framer-motion";
+import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+import { HiOutlineCpuChip, HiOutlineInformationCircle, HiOutlineShieldCheck } from "react-icons/hi2";
 import PredictionForm from "../components/PredictionForm.jsx";
-import WeatherCard from "../components/WeatherCard.jsx";
 import ResultCard from "../components/ResultCard.jsx";
-import StatsCard from "../components/StatsCard.jsx";
 import PredictionHistory from "../components/PredictionHistory.jsx";
-import { fetchTeams, fetchWeather, fetchPrediction, getErrorMessage } from "../services/api.js";
+import { fetchTeams, fetchPrediction, getErrorMessage } from "../services/api.js";
 import { FALLBACK_TEAMS } from "../constants/teams.js";
 
 const HISTORY_KEY = "ipl-score-predictor:history";
@@ -24,53 +23,26 @@ function saveHistory(history) {
   try {
     localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
   } catch {
-    // localStorage may be unavailable (private browsing, quota) - fail silently,
-    // the UI still works for the current session.
+    // Storage may be disabled; predictions remain available for this session.
   }
 }
 
 export default function Dashboard() {
   const [teams, setTeams] = useState(FALLBACK_TEAMS);
-  const [weatherStatus, setWeatherStatus] = useState("idle");
-  const [weather, setWeather] = useState(null);
-  const [weatherError, setWeatherError] = useState("");
-  const [lastCity, setLastCity] = useState("");
-
   const [submitting, setSubmitting] = useState(false);
   const [predictError, setPredictError] = useState("");
   const [result, setResult] = useState(null);
-
   const [history, setHistory] = useState(loadHistory);
 
   useEffect(() => {
     fetchTeams()
-      .then((t) => t?.length && setTeams(t))
+      .then((availableTeams) => {
+        if (availableTeams?.length) setTeams(availableTeams);
+      })
       .catch(() => {
-        /* Fall back to the bundled team list if the API isn't reachable yet. */
+        setPredictError("Couldn't reach the teams API. The bundled model-supported team list is available; prediction still requires the Flask backend.");
       });
   }, []);
-
-  const loadWeather = useCallback((city) => {
-    if (!city || city === lastCity) return;
-    setLastCity(city);
-    setWeatherStatus("loading");
-    fetchWeather(city)
-      .then((data) => {
-        setWeather(data);
-        setWeatherStatus("success");
-      })
-      .catch((error) => {
-        setWeatherError(getErrorMessage(error, "Could not load weather for this city"));
-        setWeatherStatus("error");
-      });
-  }, [lastCity]);
-
-  const retryWeather = () => {
-    if (lastCity) {
-      setLastCity(""); // force reload
-      loadWeather(lastCity);
-    }
-  };
 
   const handleSubmit = async (formValues) => {
     setSubmitting(true);
@@ -86,22 +58,19 @@ export default function Dashboard() {
         wickets_last_5: Number(formValues.wicketsLast5),
       };
       const prediction = await fetchPrediction(payload);
-
       const entry = {
         id: crypto.randomUUID(),
         battingTeam: formValues.battingTeam,
         bowlingTeam: formValues.bowlingTeam,
-        city: formValues.city,
         overs: payload.overs,
         runs: payload.runs,
         wickets: payload.wickets,
         prediction,
         timestamp: Date.now(),
       };
-
       setResult(entry);
-      setHistory((prev) => {
-        const next = [entry, ...prev].slice(0, MAX_HISTORY);
+      setHistory((previous) => {
+        const next = [entry, ...previous].slice(0, MAX_HISTORY);
         saveHistory(next);
         return next;
       });
@@ -113,8 +82,8 @@ export default function Dashboard() {
   };
 
   const deleteHistoryItem = (id) => {
-    setHistory((prev) => {
-      const next = prev.filter((item) => item.id !== id);
+    setHistory((previous) => {
+      const next = previous.filter((item) => item.id !== id);
       saveHistory(next);
       return next;
     });
@@ -126,63 +95,41 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
-      <motion.div
-        initial={{ opacity: 0, y: -8 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="mb-8 text-center"
-      >
-        <p className="mb-1 text-xs font-semibold uppercase tracking-[0.3em] text-ball">
-          Live match intelligence
-        </p>
-        <h1 className="font-display text-4xl tracking-wide sm:text-5xl">
-          Predict the innings score, powered by ML
-        </h1>
-        <p className="mx-auto mt-2 max-w-xl text-sm text-stadium-500 dark:text-pitch-light/60">
-          Enter the current match state and get an instant projected final score, backed by a
-          trained XGBoost model and real-time weather for the venue.
-        </p>
-      </motion.div>
-
-      {predictError && (
-        <div className="mb-6 rounded-xl border border-ball/30 bg-ball/10 px-4 py-3 text-center text-sm font-medium text-ball">
-          {predictError}
+    <main className="mx-auto max-w-7xl px-5 py-10 sm:px-8 sm:py-12">
+      <div className="mb-8 grid gap-6 border-b border-black/5 pb-7 dark:border-white/10 lg:grid-cols-[1fr_auto] lg:items-end">
+        <div>
+          <p className="mb-2 text-xs font-bold uppercase tracking-[.2em] text-ball">The machine-learning feature</p>
+          <h1 className="font-display text-4xl tracking-wide sm:text-5xl">Cricket Score Predictor</h1>
+          <p className="mt-3 max-w-2xl text-sm leading-6 text-stadium-500 dark:text-pitch-light/60">Predict an expected innings total from the current match state. The estimate comes directly from this project’s trained model.</p>
         </div>
-      )}
+        <Link to="/matches" className="text-sm font-bold text-ball hover:underline">Explore match centre →</Link>
+      </div>
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-4">
-        <div className="lg:col-span-2">
-          <PredictionForm
-            teams={teams}
-            onSubmit={handleSubmit}
-            onCityChange={loadWeather}
-            submitting={submitting}
-          />
-        </div>
+      <div className="mb-6 grid gap-3 sm:grid-cols-3">
+        <FeatureNote icon={<HiOutlineCpuChip />} title="Trained model" text="Existing XGBoost model; no fabricated output." />
+        <FeatureNote icon={<HiOutlineInformationCircle />} title="Seven inputs" text="Teams, innings state and last-five-over trend." />
+        <FeatureNote icon={<HiOutlineShieldCheck />} title="Private history" text="Your recent predictions stay in this browser." />
+      </div>
 
-        <div className="flex flex-col gap-6 lg:col-span-2">
+      {predictError && <div role="alert" className="mb-5 rounded-xl border border-ball/30 bg-ball/10 px-4 py-3 text-sm font-medium text-ball">{predictError}</div>}
+
+      <div className="grid gap-5 lg:grid-cols-[1.03fr_.97fr]">
+        <PredictionForm teams={teams} onSubmit={handleSubmit} submitting={submitting} />
+        <div className="flex flex-col gap-5">
           <ResultCard result={result} />
-          <WeatherCard
-            weather={weather}
-            status={weatherStatus}
-            error={weatherError}
-            onRetry={retryWeather}
-          />
+          <div className="site-card p-5 sm:p-6">
+            <p className="text-xs font-bold uppercase tracking-[.16em] text-ball">What the model receives</p>
+            <p className="mt-2 text-sm leading-6 text-stadium-600 dark:text-pitch-light/65">Batting and bowling team, runs, wickets, overs completed, runs in the last five overs and wickets in the last five overs. Current run rate is shown in the form for context; it is not sent as an extra model feature.</p>
+          </div>
         </div>
       </div>
-
-      <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-5">
-        <div className="lg:col-span-3">
-          <StatsCard result={result} />
-        </div>
-        <div className="lg:col-span-2">
-          <PredictionHistory
-            history={history}
-            onDelete={deleteHistoryItem}
-            onClearAll={clearHistory}
-          />
-        </div>
+      <div className="mt-6">
+        <PredictionHistory history={history} onDelete={deleteHistoryItem} onClearAll={clearHistory} />
       </div>
-    </div>
+    </main>
   );
+}
+
+function FeatureNote({ icon, title, text }) {
+  return <div className="site-card flex items-start gap-3 p-4"><span className="mt-0.5 text-xl text-ball">{icon}</span><div><p className="text-sm font-bold">{title}</p><p className="mt-1 text-xs leading-5 text-stadium-500 dark:text-pitch-light/55">{text}</p></div></div>;
 }

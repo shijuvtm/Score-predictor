@@ -26,7 +26,7 @@ app.config.update(
 
 cors_origins = os.environ.get(
     "CORS_ORIGINS",
-    "http://localhost:5173",
+    "https://score-predictor-ten.vercel.app",
 )
 
 CORS(

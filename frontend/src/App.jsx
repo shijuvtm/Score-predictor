@@ -1,9 +1,9 @@
 import { Suspense, lazy, useEffect, useState } from "react";
-import { Route, Routes, useLocation } from "react-router-dom";
+import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 import Navbar from "./components/Navbar.jsx";
 import Footer from "./components/Footer.jsx";
 import LoadingSpinner from "./components/LoadingSpinner.jsx";
-import { AuthProvider } from "./auth/AuthContext.jsx";
+import { AuthProvider, useAuth } from "./auth/AuthContext.jsx";
 import {
   LivePage, LoginPage, MatchDetailPage, MatchesPage, NewsDetailPage, NewsPage,
   PlayerDetailPage, PlayersPage, ProfilePage, SignupPage, TeamDetailPage, TeamsPage,
@@ -54,7 +54,7 @@ export default function App() {
             <Route path="/players/:id" element={<PlayerDetailPage />} />
             <Route path="/news" element={<NewsPage />} />
             <Route path="/news/:id" element={<NewsDetailPage />} />
-            <Route path="/predictor" element={<Predictor />} />
+            <Route path="/predictor" element={<RequireAuth><Predictor /></RequireAuth>} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/signup" element={<SignupPage />} />
             <Route path="/profile" element={<ProfilePage />} />
@@ -67,6 +67,15 @@ export default function App() {
       </div>
     </AuthProvider>
   );
+}
+
+function RequireAuth({ children }) {
+  const { user, loading } = useAuth();
+  const location = useLocation();
+
+  if (loading) return <LoadingSpinner label="Checking your account" />;
+  if (!user) return <Navigate to="/login" state={{ from: location }} replace />;
+  return children;
 }
 
 function NotFound() {

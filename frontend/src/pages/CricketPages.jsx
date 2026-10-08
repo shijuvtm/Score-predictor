@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { HiOutlineMagnifyingGlass, HiOutlineMapPin } from "react-icons/hi2";
 import { CricketImage, EmptyState, MatchCard, NewsCard, PlayerCard, SectionTitle, TeamCard, TeamMark } from "../components/CricketUI.jsx";
 import { matches, news, players, teams } from "../data/cricket.js";
@@ -198,6 +198,7 @@ function AuthShell({ title, subtitle, children }) {
 function AuthForm({ mode }) {
   const signup = mode === "signup";
   const navigate = useNavigate();
+  const location = useLocation();
   const { login, signup: createAccount } = useAuth();
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
@@ -217,7 +218,7 @@ function AuthForm({ mode }) {
     try {
       if (signup) await createAccount({ name, email, password });
       else await login({ email, password });
-      navigate("/profile");
+      navigate(location.state?.from?.pathname === "/predictor" ? "/predictor" : "/profile", { replace: true });
     } catch (requestError) {
       setError(getErrorMessage(requestError, signup ? "Unable to create your account." : "Unable to log in."));
     } finally {
@@ -231,9 +232,8 @@ function AuthForm({ mode }) {
     <FormField name="password" label="Password" type="password" placeholder="At least 8 characters" minLength={8} maxLength={128} autoComplete={signup ? "new-password" : "current-password"} />
     {signup && <FormField name="confirmPassword" label="Confirm password" type="password" placeholder="Enter your password again" minLength={8} maxLength={128} autoComplete="new-password" />}
     {error && <p role="alert" className="rounded-lg border border-ball/30 bg-ball/10 p-3 text-sm text-ball">{error}</p>}
-    <p className="rounded-lg bg-flood/10 p-3 text-xs leading-5 text-stadium-600 dark:text-pitch-light/65">Passwords are stored as one-way hashes in the configured PostgreSQL database. Use a unique password.</p>
     <button type="submit" disabled={submitting} className="w-full rounded-full bg-stadium-900 px-5 py-3 font-bold text-white transition hover:bg-turf-dark disabled:opacity-60 dark:bg-flood dark:text-stadium-900">{submitting ? "Please wait…" : signup ? "Create account" : "Login"}</button>
-    <p className="text-center text-sm text-stadium-500">{signup ? "Already have an account?" : "Don't have an account?"} <Link className="font-bold text-ball" to={signup ? "/login" : "/signup"}>{signup ? "Login" : "Sign up"}</Link></p>
+    <p className="text-center text-sm text-stadium-500">{signup ? "Already have an account?" : "Don't have an account?"} <Link className="font-bold text-ball" to={signup ? "/login" : "/signup"} state={location.state}>{signup ? "Login" : "Sign up"}</Link></p>
   </form>;
 }
 

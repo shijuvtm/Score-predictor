@@ -1,9 +1,3 @@
-"""
-weather.py
-----------
-Wrapper around the OpenWeatherMap Forecast API.
-"""
-
 import os
 import requests
 
@@ -24,7 +18,7 @@ def get_weather(city: str) -> dict:
         response = requests.get(
             OPENWEATHER_URL,
             params={
-                "q": city,          # Use only the city name
+                "q": city,          
                 "appid": api_key,
                 "units": "metric",
             },

@@ -4,7 +4,8 @@ import { HiOutlineCpuChip, HiOutlineInformationCircle, HiOutlineShieldCheck } fr
 import PredictionForm from "../components/PredictionForm.jsx";
 import ResultCard from "../components/ResultCard.jsx";
 import PredictionHistory from "../components/PredictionHistory.jsx";
-import { fetchTeams, fetchPrediction, getErrorMessage } from "../services/api.js";
+import WeatherCard from "../components/WeatherCard.jsx";
+import { fetchTeams, fetchPrediction, fetchWeather, getErrorMessage } from "../services/api.js";
 import { FALLBACK_TEAMS } from "../constants/teams.js";
 
 const HISTORY_KEY = "ipl-score-predictor:history";
@@ -33,6 +34,10 @@ export default function Dashboard() {
   const [predictError, setPredictError] = useState("");
   const [result, setResult] = useState(null);
   const [history, setHistory] = useState(loadHistory);
+  const [city, setCity] = useState("");
+  const [weather, setWeather] = useState(null);
+  const [weatherLoading, setWeatherLoading] = useState(false);
+  const [weatherError, setWeatherError] = useState("");
 
   useEffect(() => {
     fetchTeams()
@@ -43,6 +48,44 @@ export default function Dashboard() {
         setPredictError("Couldn't reach the teams API. The bundled model-supported team list is available; prediction still requires the Flask backend.");
       });
   }, []);
+
+  useEffect(() => {
+    const selectedCity = city.trim();
+    if (!selectedCity) {
+      setWeather(null);
+      setWeatherLoading(false);
+      setWeatherError("");
+      return undefined;
+    }
+
+    let active = true;
+    setWeather(null);
+    setWeatherError("");
+    setWeatherLoading(true);
+
+    const timeoutId = window.setTimeout(() => {
+      fetchWeather(selectedCity)
+        .then((data) => {
+          if (active) setWeather(data);
+        })
+        .catch((error) => {
+          if (active) {
+            setWeatherError(
+              error.response?.data?.error ||
+                "Could not fetch weather. Check the backend and weather API configuration."
+            );
+          }
+        })
+        .finally(() => {
+          if (active) setWeatherLoading(false);
+        });
+    }, 400);
+
+    return () => {
+      active = false;
+      window.clearTimeout(timeoutId);
+    };
+  }, [city]);
 
   const handleSubmit = async (formValues) => {
     setSubmitting(true);
@@ -114,8 +157,14 @@ export default function Dashboard() {
       {predictError && <div role="alert" className="mb-5 rounded-xl border border-ball/30 bg-ball/10 px-4 py-3 text-sm font-medium text-ball">{predictError}</div>}
 
       <div className="grid gap-5 lg:grid-cols-[1.03fr_.97fr]">
-        <PredictionForm teams={teams} onSubmit={handleSubmit} submitting={submitting} />
+        <PredictionForm
+          teams={teams}
+          onSubmit={handleSubmit}
+          submitting={submitting}
+          onCityChange={setCity}
+        />
         <div className="flex flex-col gap-5">
+          <WeatherCard weather={weather} city={city} loading={weatherLoading} error={weatherError} />
           <ResultCard result={result} />
           <div className="site-card p-5 sm:p-6">
             <p className="text-xs font-bold uppercase tracking-[.16em] text-ball">What the model receives</p>

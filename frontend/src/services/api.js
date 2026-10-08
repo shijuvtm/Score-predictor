@@ -49,6 +49,11 @@ export async function fetchTeams() {
   return data.teams;
 }
 
+export async function fetchWeather(city) {
+  const { data } = await client.get(apiPath("/weather"), { params: { city } });
+  return data;
+}
+
 export async function fetchPrediction(payload) {
   const { data } = await client.post(apiPath("/predict"), payload);
   return data.prediction;

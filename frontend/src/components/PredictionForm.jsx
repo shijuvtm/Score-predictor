@@ -1,7 +1,7 @@
 import { useForm } from "react-hook-form";
 import { HiOutlineBolt, HiOutlineInformationCircle } from "react-icons/hi2";
 
-export default function PredictionForm({ teams, onSubmit, submitting }) {
+export default function PredictionForm({ teams, onSubmit, submitting, onCityChange }) {
   const {
     register,
     handleSubmit,
@@ -12,6 +12,7 @@ export default function PredictionForm({ teams, onSubmit, submitting }) {
     defaultValues: {
       battingTeam: "",
       bowlingTeam: "",
+      city: "",
       runs: "",
       wickets: "",
       overs: "",
@@ -56,6 +57,28 @@ export default function PredictionForm({ teams, onSubmit, submitting }) {
           </select>
         </Field>
       </div>
+
+      <Field label="City for weather" error={errors.city?.message}>
+        <input
+          type="text"
+          list="weather-cities"
+          placeholder="Choose or enter a city"
+          autoComplete="address-level2"
+          className="site-input"
+          {...register("city", {
+            maxLength: { value: 80, message: "City name is too long" },
+            onChange: (event) => onCityChange(event.target.value),
+          })}
+        />
+        <datalist id="weather-cities">
+          {["Ahmedabad", "Bengaluru", "Chennai", "Delhi", "Dharamshala", "Hyderabad", "Jaipur", "Kolkata", "Lucknow", "Mumbai"].map((city) => (
+            <option key={city} value={city} />
+          ))}
+        </datalist>
+        <span className="mt-1 block text-xs text-stadium-500 dark:text-pitch-light/50">
+          Weather only; this does not affect the score prediction.
+        </span>
+      </Field>
 
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
         <Field label="Overs completed" error={errors.overs?.message}>
@@ -108,7 +131,7 @@ export default function PredictionForm({ teams, onSubmit, submitting }) {
       </div>
 
       <div className="flex items-center justify-between gap-3 rounded-xl bg-[#eef3ee] px-4 py-3 dark:bg-white/5">
-        <div className="flex items-center gap-2 text-xs font-medium text-stadium-600 dark:text-pitch-light/60"><HiOutlineInformationCircle className="shrink-0 text-turf" size={18} />Current run rate (runs ÷ overs). Display only.</div>
+        <div className="flex items-center gap-2 text-xs font-medium text-stadium-600 dark:text-pitch-light/60"><HiOutlineInformationCircle className="shrink-0 text-turf" size={18} />Current run rate</div>
         <span className="font-mono text-lg font-bold tabular-nums text-turf-dark dark:text-emerald-300">{currentRunRate}</span>
       </div>
 

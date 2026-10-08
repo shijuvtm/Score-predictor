@@ -16,17 +16,26 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("ipl-score-predictor")
 
 app = Flask(__name__)
-app.secret_key = os.environ.get("SECRET_KEY")
+app.secret_key = os.environ.get("SECRET_KEY", "dev-secret-key")
+
+is_production = (
+    os.environ.get("FLASK_ENV") == "production"
+    or os.environ.get("APP_ENV") == "production"
+    or os.environ.get("NODE_ENV") == "production"
+)
+
 app.config.update(
     SESSION_COOKIE_HTTPONLY=True,
-    SESSION_COOKIE_SECURE=True,
-    SESSION_COOKIE_SAMESITE="None",
+    SESSION_COOKIE_SECURE=is_production,
+    SESSION_COOKIE_SAMESITE="None" if is_production else "Lax",
     PERMANENT_SESSION_LIFETIME=timedelta(days=1),
 )
 
 cors_origins = os.environ.get(
     "CORS_ORIGINS",
-    "https://score-predictor-ten.vercel.app",
+    "https://score-predictor-ten.vercel.app,"
+    "http://localhost:3000,http://localhost:5173,"
+    "http://127.0.0.1:3000,http://127.0.0.1:5173",
 )
 
 CORS(
@@ -41,9 +50,10 @@ CORS(
         }
     },
     supports_credentials=True,
-    allow_headers=["Content-Type", "X-CSRF-Token"],
+    allow_headers=["Content-Type", "Authorization", "X-CSRF-Token"],
     methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
 )
+
 # Load the model exactly once, at process startup, not per-request.
 load_model()
 logger.info("ML model loaded and ready.")

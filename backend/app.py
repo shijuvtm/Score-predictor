@@ -28,14 +28,22 @@ cors_origins = os.environ.get(
     "CORS_ORIGINS",
     "http://localhost:5173",
 )
+
 CORS(
     app,
-    resources={r"/*": {"origins": [origin.strip() for origin in cors_origins.split(",") if origin.strip()]}},
+    resources={
+        r"/*": {
+            "origins": [
+                origin.strip()
+                for origin in cors_origins.split(",")
+                if origin.strip()
+            ]
+        }
+    },
     supports_credentials=True,
     allow_headers=["Content-Type", "X-CSRF-Token"],
-    methods==["GET","POST","PUT","PATCH","DELETE","OPTION"]
+    methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
 )
-
 # Load the model exactly once, at process startup, not per-request.
 load_model()
 logger.info("ML model loaded and ready.")

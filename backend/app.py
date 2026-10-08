@@ -19,20 +19,21 @@ app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY")
 app.config.update(
     SESSION_COOKIE_HTTPONLY=True,
-    SESSION_COOKIE_SECURE=os.environ.get("SESSION_COOKIE_SECURE", "false").lower() == "true",
-    SESSION_COOKIE_SAMESITE=os.environ.get("SESSION_COOKIE_SAMESITE", "Lax"),
-    PERMANENT_SESSION_LIFETIME=timedelta(days=7),
+    SESSION_COOKIE_SECURE=True,
+    SESSION_COOKIE_SAMESITE="None",
+    PERMANENT_SESSION_LIFETIME=timedelta(days=1),
 )
 
 cors_origins = os.environ.get(
     "CORS_ORIGINS",
-    "http://localhost:5173,http://127.0.0.1:5173",
+    "http://localhost:5173",
 )
 CORS(
     app,
-    resources={r"/*": {"origins": [origin.strip() for origin in cors_origins.split(",")]}},
+    resources={r"/*": {"origins": [origin.strip() for origin in cors_origins.split(",") if origin.strip()]}},
     supports_credentials=True,
     allow_headers=["Content-Type", "X-CSRF-Token"],
+    methods==["GET","POST","PUT","PATCH","DELETE","OPTION"]
 )
 
 # Load the model exactly once, at process startup, not per-request.

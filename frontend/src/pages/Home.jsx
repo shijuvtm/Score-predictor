@@ -3,7 +3,7 @@ import { HiArrowRight, HiOutlineChartBar, HiOutlineCpuChip, HiOutlineSparkles } 
 import { CricketImage, MatchCard, NewsCard, PlayerCard, SectionTitle, TeamMark } from "../components/CricketUI.jsx";
 import { heroImage, matches, news, players } from "../data/cricket.js";
 
-const featuredTeams = ["India", "Australia", "England", "South Africa", "New Zealand", "Pakistan"];
+const featuredTeams = ["India", "Australia", "England", "South Africa", "New Zealand", "Pakistan"," West Indies "," Bangladesh "];
 
 export default function Home() {
   const liveMatches = matches.filter((match) => match.status === "Live");

@@ -219,8 +219,7 @@ export const matches = [
     awayScore: "167/8", awayOvers: "20",
     note: "Royal Challengers Bengaluru won by 2 wickets",
     season: 2026, competition: "IPL"
-  }
-
+  }, 
   // INDIA vs NEW ZEALAND — 2026 T20I SERIES
   {
     id: "match-01", status: "Completed", format: "T20",

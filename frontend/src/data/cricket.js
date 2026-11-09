@@ -667,7 +667,7 @@ export const matches = [
 
 
 export const players = [
-  { id: "player-virat", name: "Virat Kohli", country: "India", role: "Batter", batting: "Right-hand bat", bowling: "Right-arm medium", matches: 125, runs: "4,188", average: "48.7", strikeRate: "137.2", wickets: 4, economy: "8.8", image: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=600&q=80" },
+  { id: "player-virat", name: "Virat Kohli", country: "India", role: "Batter", batting: "Right-hand bat", bowling: "Right-arm medium", matches: 125, runs: "4,188", average: "48.7", strikeRate: "137.2", wickets: 4, economy: "8.8", image: "https://i.ibb.co/TBh9bhcq/trashed-1796802447-Virat-Kohli-in-PMO-New-Delhi.jpg"},
   { id: "player-smriti", name: "Smriti Mandhana", country: "India", role: "Batter", batting: "Left-hand bat", bowling: "Right-arm offbreak", matches: 136, runs: "3,493", average: "29.4", strikeRate: "123.4", wickets: 0, economy: "—", image: "https://kommodo.ai/i/Sz4zmrzEBA2jXbXIqhpY" },
   { id: "player-bumrah", name: "Jasprit Bumrah", country: "India", role: "Bowler", batting: "Right-hand bat", bowling: "Right-arm fast", matches: 133, runs: "69", average: "3.8", strikeRate: "53.1", wickets: 165, economy: "7.3", image: "https://kommodo.ai/i/G8EPD11RZcK01cgnklPw" },
   { id: "player-stokes", name: "Ben Stokes", country: "England", role: "All-rounder", batting: "Left-hand bat", bowling: "Right-arm fast-medium", matches: 43, runs: "920", average: "25.6", strikeRate: "134.5", wickets: 28, economy: "8.6", image: "https://kommodo.ai/i/vLmaxhZQZI0CrExYy9AB" },
